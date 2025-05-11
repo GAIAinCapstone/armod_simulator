@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 class GaussianPlumeModel:
     """
@@ -42,6 +43,21 @@ class GaussianPlumeModel:
         C = part1 * part2 * (part3 + part4)
         return C
 
+    def batch_concentration(self, points):
+        """
+        여러 지점에 대해 농도를 계산하여 DataFrame으로 반환합니다.
+        Args:
+            points (list of dict): [{'x':..., 'y':..., 'z':...}, ...]
+        Returns:
+            DataFrame: 각 지점별 농도 결과
+        """
+        results = []
+        for pt in points:
+            x, y, z = pt['x'], pt['y'], pt.get('z', 0)
+            c = self.concentration(x, y, z)
+            results.append({'x': x, 'y': y, 'z': z, 'concentration': c})
+        return pd.DataFrame(results)
+
 # 예시 사용법
 if __name__ == "__main__":
     # 예시 파라미터
@@ -52,8 +68,13 @@ if __name__ == "__main__":
     sigma_z = 15.0 # m
 
     model = GaussianPlumeModel(Q, u, H, sigma_y, sigma_z)
-    x = 100.0  # 다운윈드 거리
-    y = 0.0    # 횡방향 거리
-    z = 0.0    # 지상
-    C = model.concentration(x, y, z)
-    print(f"(x={x}, y={y}, z={z})에서의 농도: {C:.6f} g/m^3") 
+    # 여러 지점 예시
+    points = [
+        {'x': 100, 'y': 0, 'z': 0},
+        {'x': 200, 'y': 0, 'z': 0},
+        {'x': 300, 'y': 0, 'z': 0},
+        {'x': 100, 'y': 50, 'z': 0},
+        {'x': 100, 'y': -50, 'z': 0},
+    ]
+    df = model.batch_concentration(points)
+    print(df) 
